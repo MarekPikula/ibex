@@ -92,14 +92,13 @@ module ibex_multdiv_fast (
         md_state_q       <= md_state_n;
       end
 
-      unique case(1'b1)
-        mult_en_i:
-          mac_res_q <= mac_res_n;
-        div_en_i:
-          mac_res_q <= op_remainder_n;
-        default:
-          mac_res_q <= mac_res_q;
-       endcase
+      if (mult_en_i) begin
+        mac_res_q <= mac_res_n;
+      end else if (div_en_i) begin
+        mac_res_q <= op_remainder_n;
+      end else begin
+        mac_res_q <= mac_res_q;
+      end
     end
   end
 

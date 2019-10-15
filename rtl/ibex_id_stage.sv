@@ -543,20 +543,17 @@ module ibex_id_stage #(
         // only detect multicycle when instruction is new, do not re-detect after
         // execution (when waiting for next instruction from IF stage)
         if (instr_new_i & ~instr_fetch_err_i) begin
-          unique case (1'b1)
-            data_req_dec: begin
+          if (data_req_dec) begin
               // LSU operation
               id_wb_fsm_ns            = WAIT_MULTICYCLE;
               stall_lsu               = 1'b1;
               instr_multicycle_done_n = 1'b0;
-            end
-            multdiv_en_dec: begin
+          end else if (multdiv_en_dec) begin
               // MUL or DIV operation
               id_wb_fsm_ns            = WAIT_MULTICYCLE;
               stall_multdiv           = 1'b1;
               instr_multicycle_done_n = 1'b0;
-            end
-            branch_in_dec: begin
+          end else if (branch_in_dec) begin
               // cond branch operation
               id_wb_fsm_ns            =  branch_decision_i ? WAIT_MULTICYCLE : IDLE;
               stall_branch            =  branch_decision_i;
@@ -564,18 +561,15 @@ module ibex_id_stage #(
               branch_set_n            =  branch_decision_i;
               perf_branch_o           =  1'b1;
               instr_ret_o             = ~branch_decision_i;
-            end
-            jump_in_dec: begin
+          end else if (jump_in_dec) begin
               // uncond branch operation
               id_wb_fsm_ns            = WAIT_MULTICYCLE;
               stall_jump              = 1'b1;
               instr_multicycle_done_n = 1'b0;
-            end
-            default: begin
+          end else begin
               instr_multicycle_done_n = 1'b0;
               instr_ret_o             = 1'b1;
-            end
-          endcase
+          end
         end
       end
 
