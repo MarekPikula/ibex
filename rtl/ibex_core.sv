@@ -55,6 +55,8 @@ module ibex_core #(
     input  logic        irq_external_i,
     input  logic [14:0] irq_fast_i,
     input  logic        irq_nm_i,       // non-maskeable interrupt
+    output logic        irq_ack_o,
+    output logic [3:0]  irq_ack_id_o,
 
     // Debug Interface
     input  logic        debug_req_i,
@@ -282,7 +284,7 @@ module ibex_core #(
   // main clock gate of the core
   // generates all clocks except the one for the debug unit which is
   // independent
-  prim_clock_gating core_clock_gate_i (
+  cluster_clock_gating core_clock_gate_i (
       .clk_i     ( clk_i           ),
       .en_i      ( clock_en        ),
       .test_en_i ( test_en_i       ),
@@ -440,6 +442,8 @@ module ibex_core #(
       .csr_mfip_i                   ( csr_mfip               ),
       .irq_pending_i                ( irq_pending            ),
       .irq_nm_i                     ( irq_nm_i               ),
+      .irq_ack_o                    ( irq_ack_o              ),
+      .irq_ack_id_o                 ( irq_ack_id_o           ),
 
       // Debug Signal
       .debug_mode_o                 ( debug_mode             ),
