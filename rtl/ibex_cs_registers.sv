@@ -664,6 +664,7 @@ module ibex_cs_registers #(
   // PMP registers
   // -----------------
 
+  generate
   if (PMPEnable) begin : g_pmp_registers
     pmp_cfg_t                    pmp_cfg         [PMPNumRegions];
     pmp_cfg_t                    pmp_cfg_wdata   [PMPNumRegions];
@@ -672,7 +673,8 @@ module ibex_cs_registers #(
     logic [PMPNumRegions-1:0]    pmp_addr_we;
 
     // Expanded / qualified register read data
-    for (genvar i = 0; i < PMP_MAX_REGIONS; i++) begin : g_exp_rd_data
+    genvar i;
+    for (i = 0; i < PMP_MAX_REGIONS; i++) begin : g_exp_rd_data
       if (i < PMPNumRegions) begin : g_implemented_regions
         // Add in zero padding for reserved fields
         assign pmp_cfg_rdata[i] = {pmp_cfg[i].lock, 2'b00, pmp_cfg[i].mode,
@@ -715,7 +717,7 @@ module ibex_cs_registers #(
     end
 
     // Write data calculation
-    for (genvar i = 0; i < PMPNumRegions; i++) begin : g_pmp_csrs
+    for (i = 0; i < PMPNumRegions; i++) begin : g_pmp_csrs
       // -------------------------
       // Instantiate cfg registers
       // -------------------------
@@ -773,15 +775,17 @@ module ibex_cs_registers #(
 
   end else begin : g_no_pmp_tieoffs
     // Generate tieoffs when PMP is not configured
-    for (genvar i = 0; i < PMP_MAX_REGIONS; i++) begin : g_rdata
+    genvar i;
+    for (i = 0; i < PMP_MAX_REGIONS; i++) begin : g_rdata
       assign pmp_addr_rdata[i] = '0;
       assign pmp_cfg_rdata[i]  = '0;
     end
-    for (genvar i = 0; i < PMPNumRegions; i++) begin : g_outputs
+    for (i = 0; i < PMPNumRegions; i++) begin : g_outputs
       assign csr_pmp_cfg_o[i]  = pmp_cfg_t'(1'b0);
       assign csr_pmp_addr_o[i] = '0;
     end
   end
+  endgenerate
 
   //////////////////////////
   //  Performance monitor //
