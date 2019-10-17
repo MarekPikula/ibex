@@ -61,7 +61,7 @@ module ibex_controller (
     input  logic                  irq_pending_i,         // interrupt request pending
     input  logic                  irq_nm_i,              // non-maskeable interrupt
     output logic                  irq_ack_o,             // to ext. int controller
-    output logic [3:0]            irq_ack_id_o,          // to ext. int controller
+    output logic [4:0]            irq_ack_id_o,          // to ext. int controller
 
     // debug signals
     input  logic                  debug_req_i,
@@ -233,27 +233,27 @@ module ibex_controller (
 
   // generate ID for interrupts for external controller
   always_comb begin : gen_irq_ack_id
-    if      (irq_nm_i      ) irq_ack_id_o = 4'd31;
-    else if (csr_mfip_i[14]) irq_ack_id_o = 4'd30;
-    else if (csr_mfip_i[13]) irq_ack_id_o = 4'd29;
-    else if (csr_mfip_i[12]) irq_ack_id_o = 4'd28;
-    else if (csr_mfip_i[11]) irq_ack_id_o = 4'd27;
-    else if (csr_mfip_i[10]) irq_ack_id_o = 4'd26;
-    else if (csr_mfip_i[ 9]) irq_ack_id_o = 4'd25;
-    else if (csr_mfip_i[ 8]) irq_ack_id_o = 4'd24;
-    else if (csr_mfip_i[ 7]) irq_ack_id_o = 4'd23;
-    else if (csr_mfip_i[ 6]) irq_ack_id_o = 4'd22;
-    else if (csr_mfip_i[ 5]) irq_ack_id_o = 4'd21;
-    else if (csr_mfip_i[ 5]) irq_ack_id_o = 4'd20;
-    else if (csr_mfip_i[ 4]) irq_ack_id_o = 4'd19;
-    else if (csr_mfip_i[ 3]) irq_ack_id_o = 4'd18;
-    else if (csr_mfip_i[ 2]) irq_ack_id_o = 4'd17;
-    else if (csr_mfip_i[ 1]) irq_ack_id_o = 4'd16;
-    else if (csr_mfip_i[ 0]) irq_ack_id_o = 4'd15;
-    else if (csr_meip_i    ) irq_ack_id_o = 4'd11;
-    else if (csr_mtip_i    ) irq_ack_id_o = 4'd7;
-    else if (csr_msip_i    ) irq_ack_id_o = 4'd3;
-    else                     irq_ack_id_o = 4'd0;
+    if      (irq_nm_i      ) irq_ack_id_o = 5'd31;
+    else if (csr_mfip_i[14]) irq_ack_id_o = 5'd30;
+    else if (csr_mfip_i[13]) irq_ack_id_o = 5'd29;
+    else if (csr_mfip_i[12]) irq_ack_id_o = 5'd28;
+    else if (csr_mfip_i[11]) irq_ack_id_o = 5'd27;
+    else if (csr_mfip_i[10]) irq_ack_id_o = 5'd26;
+    else if (csr_mfip_i[ 9]) irq_ack_id_o = 5'd25;
+    else if (csr_mfip_i[ 8]) irq_ack_id_o = 5'd24;
+    else if (csr_mfip_i[ 7]) irq_ack_id_o = 5'd23;
+    else if (csr_mfip_i[ 6]) irq_ack_id_o = 5'd22;
+    else if (csr_mfip_i[ 5]) irq_ack_id_o = 5'd21;
+    else if (csr_mfip_i[ 5]) irq_ack_id_o = 5'd20;
+    else if (csr_mfip_i[ 4]) irq_ack_id_o = 5'd19;
+    else if (csr_mfip_i[ 3]) irq_ack_id_o = 5'd18;
+    else if (csr_mfip_i[ 2]) irq_ack_id_o = 5'd17;
+    else if (csr_mfip_i[ 1]) irq_ack_id_o = 5'd16;
+    else if (csr_mfip_i[ 0]) irq_ack_id_o = 5'd15;
+    else if (csr_meip_i    ) irq_ack_id_o = 5'd11;
+    else if (csr_mtip_i    ) irq_ack_id_o = 5'd7;
+    else if (csr_msip_i    ) irq_ack_id_o = 5'd3;
+    else                     irq_ack_id_o = 5'd0;
   end
 
   assign unused_csr_mtip = csr_mtip_i;

@@ -31,7 +31,7 @@ filesets:
 
   files_lint:
     files:
-      - dv/uvm/tb/prim_clock_gating.sv: {file_type: systemVerilogSource}
+      - dv/uvm/tb/cluster_clock_gating.sv: {file_type: systemVerilogSource}
 
   files_lint_verilator:
     files:

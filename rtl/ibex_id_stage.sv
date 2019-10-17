@@ -98,7 +98,7 @@ module ibex_id_stage #(
     input  logic                  irq_pending_i,
     input  logic                  irq_nm_i,
     output logic                  irq_ack_o,
-    output logic [3:0]            irq_ack_id_o,
+    output logic [4:0]            irq_ack_id_o,
 
     input  logic                  lsu_load_err_i,
     input  logic                  lsu_store_err_i,
