@@ -504,7 +504,7 @@ module ibex_decoder #(
           alu_op_b_mux_sel_o = OP_B_IMM;
           regfile_we         = 1'b0;
         end else begin
-          illegal_insn       = 1'b1;
+          //illegal_insn       = 1'b1;  // waiting for https://github.com/lowRISC/ibex/issues/391
         end
       end
 
