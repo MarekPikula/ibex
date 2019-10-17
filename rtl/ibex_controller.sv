@@ -231,6 +231,31 @@ module ibex_controller (
     else                     mfip_id = 4'd0;
   end
 
+  // generate ID for interrupts for external controller
+  always_comb begin : gen_irq_ack_id
+    if      (irq_nm_i      ) irq_ack_id_o = 4'd31;
+    else if (csr_mfip_i[14]) irq_ack_id_o = 4'd30;
+    else if (csr_mfip_i[13]) irq_ack_id_o = 4'd29;
+    else if (csr_mfip_i[12]) irq_ack_id_o = 4'd28;
+    else if (csr_mfip_i[11]) irq_ack_id_o = 4'd27;
+    else if (csr_mfip_i[10]) irq_ack_id_o = 4'd26;
+    else if (csr_mfip_i[ 9]) irq_ack_id_o = 4'd25;
+    else if (csr_mfip_i[ 8]) irq_ack_id_o = 4'd24;
+    else if (csr_mfip_i[ 7]) irq_ack_id_o = 4'd23;
+    else if (csr_mfip_i[ 6]) irq_ack_id_o = 4'd22;
+    else if (csr_mfip_i[ 5]) irq_ack_id_o = 4'd21;
+    else if (csr_mfip_i[ 5]) irq_ack_id_o = 4'd20;
+    else if (csr_mfip_i[ 4]) irq_ack_id_o = 4'd19;
+    else if (csr_mfip_i[ 3]) irq_ack_id_o = 4'd18;
+    else if (csr_mfip_i[ 2]) irq_ack_id_o = 4'd17;
+    else if (csr_mfip_i[ 1]) irq_ack_id_o = 4'd16;
+    else if (csr_mfip_i[ 0]) irq_ack_id_o = 4'd15;
+    else if (csr_meip_i    ) irq_ack_id_o = 4'd11;
+    else if (csr_mtip_i    ) irq_ack_id_o = 4'd7;
+    else if (csr_msip_i    ) irq_ack_id_o = 4'd3;
+    else                     irq_ack_id_o = 4'd0;
+  end
+
   assign unused_csr_mtip = csr_mtip_i;
 
   /////////////////////
@@ -270,7 +295,6 @@ module ibex_controller (
     perf_jump_o           = 1'b0;
 
     irq_ack_o             = 1'b0;
-    irq_ack_id_o          = 4'b0;
 
     unique case (ctrl_fsm_cs)
       RESET: begin
@@ -403,20 +427,23 @@ module ibex_controller (
           if (irq_nm_i && !nmi_mode_q) begin
             exc_cause_o = EXC_CAUSE_IRQ_NM;
             nmi_mode_d  = 1'b1; // enter NMI mode
+            irq_ack_o   = 1'b1;
           end else if (csr_mfip_i != 15'b0) begin
             // generate exception cause ID from fast interrupt ID:
             // - first bit distinguishes interrupts from exceptions,
             // - second bit adds 16 to fast interrupt ID
             // for example EXC_CAUSE_IRQ_FAST_0 = {1'b1, 5'd16}
             exc_cause_o = exc_cause_e'({2'b11, mfip_id});
-            irq_ack_o    = 1'b1;
-            irq_ack_id_o = mfip_id;
+            irq_ack_o   = 1'b1;
           end else if (csr_meip_i) begin
             exc_cause_o = EXC_CAUSE_IRQ_EXTERNAL_M;
+            irq_ack_o   = 1'b1;
           end else if (csr_msip_i) begin
             exc_cause_o = EXC_CAUSE_IRQ_SOFTWARE_M;
+            irq_ack_o   = 1'b1;
           end else begin // csr_mtip_i
             exc_cause_o = EXC_CAUSE_IRQ_TIMER_M;
+            irq_ack_o   = 1'b1;
           end
         end
 
