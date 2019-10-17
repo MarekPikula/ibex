@@ -285,8 +285,11 @@ parameter logic [11:0] CSR_OFF_PMP_ADDR = 12'h3B0; // pmp_addr @ 12'h3b0 - 12'h3
 
 // CSR mhpmcounter-related offsets and mask
 parameter logic [11:0] CSR_OFF_MCOUNTER_SETUP = 12'h320; // mcounter_setup @ 12'h323 - 12'h33F
+parameter logic [11:0] CSR_Z_MCOUNTER_SETUP   = 12'b0011001?????;
 parameter logic [11:0] CSR_OFF_MCOUNTER       = 12'hB00; // mcounter       @ 12'hB03 - 12'hB1F
+parameter logic [11:0] CSR_Z_MCOUNTER         = 12'b1011000?????;
 parameter logic [11:0] CSR_OFF_MCOUNTERH      = 12'hB80; // mcounterh      @ 12'hB83 - 12'hB9F
+parameter logic [11:0] CSR_Z_MCOUNTERH        = 12'b1011100?????;
 parameter logic [11:0] CSR_MASK_MCOUNTER      = 12'hFE0;
 
 // CSR status bits
