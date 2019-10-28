@@ -24,6 +24,7 @@ module ibex_decoder #(
     output logic                 ecall_insn_o,          // syscall instr encountered
     output logic                 wfi_insn_o,            // wait for interrupt instr encountered
     output logic                 jump_set_o,            // jump taken set signal
+    output logic                 flush_if_o,            // flush IF and prefetch buffer and refetch
 
     // from IF-ID pipeline register
     input  logic                 instr_new_i,           // instruction read is new
@@ -204,6 +205,8 @@ module ibex_decoder #(
     dret_insn_o                 = 1'b0;
     ecall_insn_o                = 1'b0;
     wfi_insn_o                  = 1'b0;
+
+    flush_if_o                  = 1'b0;
 
     opcode                      = opcode_e'(instr[6:0]);
 
@@ -493,17 +496,27 @@ module ibex_decoder #(
         // For now, treat the fence (funct3 == 000) instruction as a nop.
         // This may not be correct in a system with caches and should be
         // revisited.
-        // fence.i (funct3 == 001) was moved to a separate Zifencei extension
-        // in the RISC-V ISA spec proposed for ratification, so we treat it as
-        // an illegal instruction.
-        if (instr[14:12] == 3'b000) begin
-          alu_operator_o     = ALU_ADD; // nop
-          alu_op_a_mux_sel_o = OP_A_REG_A;
-          alu_op_b_mux_sel_o = OP_B_IMM;
-          regfile_we         = 1'b0;
-        end else begin
-          illegal_insn       = 1'b1;
-        end
+        // FENCE.I will flush the IF stage and prefetch buffer but nothing
+        // else.
+        unique case(instr[14:12])
+          3'b000: begin
+            alu_operator_o     = ALU_ADD; // nop
+            alu_op_a_mux_sel_o = OP_A_REG_A;
+            alu_op_b_mux_sel_o = OP_B_IMM;
+            regfile_we         = 1'b0;
+          end
+          3'b001: begin
+            alu_operator_o     = ALU_ADD; // nop
+            alu_op_a_mux_sel_o = OP_A_REG_A;
+            alu_op_b_mux_sel_o = OP_B_IMM;
+            regfile_we         = 1'b0;
+            flush_if_o         = 1'b1;
+            //FENCE.I
+          end
+          default: begin
+            illegal_insn       = 1'b1;
+          end
+        endcase
       end
 
       OPCODE_SYSTEM: begin

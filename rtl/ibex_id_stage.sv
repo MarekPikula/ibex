@@ -45,6 +45,7 @@ module ibex_id_stage #(
     output ibex_pkg::pc_sel_e     pc_mux_o,
     output ibex_pkg::exc_pc_sel_e exc_pc_mux_o,
     output ibex_pkg::exc_cause_e  exc_cause_o,
+    output logic                  flush_if_o,
 
     input  logic                  illegal_c_insn_i,
     input  logic                  instr_fetch_err_i,
@@ -142,6 +143,7 @@ module ibex_id_stage #(
   logic        dret_insn_dec;
   logic        ecall_insn_dec;
   logic        wfi_insn_dec;
+  logic        flush_if_dec;
 
   logic        branch_in_dec;
   logic        branch_set_n, branch_set_q;
@@ -323,6 +325,7 @@ module ibex_id_stage #(
       .ecall_insn_o                    ( ecall_insn_dec       ),
       .wfi_insn_o                      ( wfi_insn_dec         ),
       .jump_set_o                      ( jump_set             ),
+      .flush_if_o                      ( flush_if_dec         ),
 
       // from IF-ID pipeline register
       .instr_new_i                     ( instr_new_i          ),
@@ -374,6 +377,8 @@ module ibex_id_stage #(
       .jump_in_dec_o                   ( jump_in_dec          ),
       .branch_in_dec_o                 ( branch_in_dec        )
   );
+
+  assign flush_if_o = flush_if_dec & instr_valid_i;
 
   ////////////////
   // Controller //
