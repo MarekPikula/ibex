@@ -50,6 +50,8 @@ module ibex_if_stage #(
     input  ibex_pkg::exc_pc_sel_e exc_pc_mux_i,             // selects ISR address
     input  ibex_pkg::exc_cause_e  exc_cause,                // selects ISR address for
                                                             // vectorized interrupt lines
+    input  logic                  flush_if_i,
+
     // jump and branch target
     input  logic [31:0]           jump_target_ex_i,         // jump target address
 
@@ -137,6 +139,7 @@ module ibex_if_stage #(
 
       .branch_i          ( branch_req                  ),
       .addr_i            ( {fetch_addr_n[31:1], 1'b0}  ),
+      .flush_i           ( flush_if_i                  ),
 
       .ready_i           ( fetch_ready                 ),
       .valid_o           ( fetch_valid                 ),

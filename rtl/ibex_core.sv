@@ -111,6 +111,7 @@ module ibex_core #(
   pc_sel_e     pc_mux_id;              // Mux selector for next PC
   exc_pc_sel_e exc_pc_mux_id;          // Mux selector for exception PC
   exc_cause_e  exc_cause;              // Exception cause
+  logic        flush_if;
 
   logic        lsu_load_err;
   logic        lsu_store_err;
@@ -331,6 +332,7 @@ module ibex_core #(
       .pc_mux_i                 ( pc_mux_id              ),
       .exc_pc_mux_i             ( exc_pc_mux_id          ),
       .exc_cause                ( exc_cause              ),
+      .flush_if_i               ( flush_if               ),
 
       // jump targets
       .jump_target_ex_i         ( jump_target_ex         ),
@@ -388,6 +390,7 @@ module ibex_core #(
       .pc_mux_o                     ( pc_mux_id              ),
       .exc_pc_mux_o                 ( exc_pc_mux_id          ),
       .exc_cause_o                  ( exc_cause              ),
+      .flush_if_o                   ( flush_if               ),
 
       .instr_fetch_err_i            ( instr_fetch_err        ),
       .illegal_c_insn_i             ( illegal_c_insn_id      ),
