@@ -17,7 +17,7 @@ module ibex_prefetch_buffer (
 
     input  logic        branch_i,
     input  logic [31:0] addr_i,
-
+    input  logic        flush_i,
 
     input  logic        ready_i,
     output logic        valid_o,
@@ -41,6 +41,7 @@ module ibex_prefetch_buffer (
 
   localparam int unsigned NUM_REQS  = 2;
 
+  logic                fifo_out_valid;
   logic                valid_new_req, valid_req;
   logic                valid_req_d, valid_req_q;
   logic                discard_req_d, discard_req_q;
@@ -60,6 +61,9 @@ module ibex_prefetch_buffer (
   logic                fifo_ready;
   logic                fifo_clear;
 
+  logic                branch_req;
+  logic [31:0]         branch_addr;
+
   ////////////////////////////
   // Prefetch buffer status //
   ////////////////////////////
@@ -74,8 +78,18 @@ module ibex_prefetch_buffer (
   // PMP errors are generated in the address phase, and registered into a fake data phase
   assign instr_or_pmp_err = instr_err_i | rdata_pmp_err_q[0];
 
+  // After flushing the IF and prefetch buffer the IF stage needs to begin
+  // fetching again from the instruction after the flush. This is effectively
+  // a branch to whatever PC was next to be executed.
+  // (Note that addr_o still provided a valid PC even if fifo_out_valid isn't
+  // set).
+  assign branch_req = branch_i | flush_i;
+
+  assign branch_addr = branch_i ? addr_i :
+                                  addr_o;
+
   // A branch will invalidate any previously fetched instructions
-  assign fifo_clear = branch_i;
+  assign fifo_clear = branch_req;
 
   ibex_fetch_fifo #(
     .NUM_REQS (NUM_REQS)
@@ -86,25 +100,27 @@ module ibex_prefetch_buffer (
       .clear_i               ( fifo_clear        ),
 
       .in_valid_i            ( fifo_valid        ),
-      .in_addr_i             ( addr_i            ),
+      .in_addr_i             ( branch_addr       ),
       .in_rdata_i            ( instr_rdata_i     ),
       .in_err_i              ( instr_or_pmp_err  ),
       .in_ready_o            ( fifo_ready        ),
 
 
-      .out_valid_o           ( valid_o           ),
+      .out_valid_o           ( fifo_out_valid    ),
       .out_ready_i           ( ready_i           ),
       .out_rdata_o           ( rdata_o           ),
       .out_addr_o            ( addr_o            ),
       .out_err_o             ( err_o             )
   );
 
+  assign valid_o = fifo_out_valid & ~flush_i;
+
   //////////////
   // Requests //
   //////////////
 
   // Make a new request any time there is space in the FIFO, and space in the request queue
-  assign valid_new_req = req_i & (fifo_ready | branch_i) & ~rdata_outstanding_q[NUM_REQS-1];
+  assign valid_new_req = req_i & (fifo_ready | branch_req) & ~rdata_outstanding_q[NUM_REQS-1];
   assign valid_req = valid_req_q | valid_new_req;
 
   // If a request address triggers a PMP error, the external bus request is suppressed. We might
@@ -119,7 +135,7 @@ module ibex_prefetch_buffer (
   assign valid_req_d = valid_req & ~gnt_or_pmp_err;
 
   // Record whether an outstanding bus request is cancelled by a branch
-  assign discard_req_d = valid_req_q & (branch_i | discard_req_q);
+  assign discard_req_d = valid_req_q & (branch_req | discard_req_q);
 
   ////////////////
   // Fetch addr //
@@ -153,10 +169,10 @@ module ibex_prefetch_buffer (
   // 2. fetch_addr_q
 
   // Update on a branch or as soon as a request is issued
-  assign fetch_addr_en = branch_i | (valid_new_req & ~valid_req_q);
+  assign fetch_addr_en = branch_req | (valid_new_req & ~valid_req_q);
 
-  assign fetch_addr_d = (branch_i ? addr_i : 
-                                    {fetch_addr_q[31:2], 2'b00}) +
+  assign fetch_addr_d = (branch_req ? branch_addr               :
+                                      {fetch_addr_q[31:2], 2'b00}) +
                         // Current address + 4
                         {{29{1'b0}},(valid_new_req & ~valid_req_q),2'b00};
 
@@ -168,7 +184,7 @@ module ibex_prefetch_buffer (
 
   // Address mux
   assign instr_addr = valid_req_q ? stored_addr_q :
-                      branch_i    ? addr_i :
+                      branch_req  ? branch_addr   :
                                     fetch_addr_q;
 
   assign instr_addr_w_aligned = {instr_addr[31:2], 2'b00};
@@ -189,7 +205,7 @@ module ibex_prefetch_buffer (
       // If a branch is received at any point while a request is outstanding, it must be tracked
       // to ensure we discard the data once received
       assign branch_discard_n[i]    = (valid_req & gnt_or_pmp_err & discard_req_d) |
-                                      (branch_i & rdata_outstanding_q[i]) | branch_discard_q[i];
+                                      (branch_req & rdata_outstanding_q[i]) | branch_discard_q[i];
       // Record whether this request received a PMP error
       assign rdata_pmp_err_n[i]     = (valid_req & ~rdata_outstanding_q[i] & instr_pmp_err_i) |
                                       rdata_pmp_err_q[i];
@@ -203,7 +219,7 @@ module ibex_prefetch_buffer (
                                       rdata_outstanding_q[i];
       assign branch_discard_n[i]    = (valid_req & gnt_or_pmp_err & discard_req_d &
                                        rdata_outstanding_q[i-1]) |
-                                      (branch_i & rdata_outstanding_q[i]) | branch_discard_q[i];
+                                      (branch_req & rdata_outstanding_q[i]) | branch_discard_q[i];
       assign rdata_pmp_err_n[i]     = (valid_req & ~rdata_outstanding_q[i] & instr_pmp_err_i &
                                        rdata_outstanding_q[i-1]) |
                                       rdata_pmp_err_q[i];
